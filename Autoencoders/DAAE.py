@@ -8,7 +8,7 @@ from torch.autograd import Variable
 
 class Autoencoder(nn.Module):
     def __init__(self, nz=2):
-        super(Autoencoder, self).__ini__()
+        super(Autoencoder, self).__init__()
         self.nz=nz
         self.encoder=nn.Sequential(
         nn.Linear(28*28,128),
@@ -16,7 +16,7 @@ class Autoencoder(nn.Module):
         nn.Linear(128,64),
         nn.Tanh(),
         nn.Linear(64,12),
-        nn.Tanh()
+        nn.Tanh(),
         nn.Linear(12,nz),
         )
         self.decoder=nn.Sequential(
@@ -35,6 +35,6 @@ class Autoencoder(nn.Module):
         decoded=self.decoder(encoded)
         return encoded, decoded
         
-    def lossfunc(self, encoded,original)
+    def lossfunc(self, decoded,original):
         loss=nn.MSELoss()
         return loss(decoded, original)
