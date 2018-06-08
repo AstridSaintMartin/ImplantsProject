@@ -18,11 +18,13 @@ latent_code_size=2
 img_size=784
 img_width=28
 img_height=28
+noise = torch.rand(batch_size,1,28,28)
 
 def train (autoencoder, train_loader):
     optimizer=torch.optim.Adam(autoencoder.parameters(),lr=0.005)
     for epoch in range(max_epoch):
-        for image, label in train_loader:
+        for step, (image, label) in enumerate(train_loader):
+            image= torch.mul(image+0.25, 0.5 * noise)
             image=Variable(image.view(-1,28*28))
             label=Variable(label)
             encoded, decoded=autoencoder.forward(image)
@@ -46,7 +48,7 @@ if __name__ == '__main__':
 
     autoencoder=Autoencoder(latent_code_size)
     print("begin training")
-    train(autoencoder,train_loader)
+   # train(autoencoder,train_loader)
     
-    
+    print(len(test_loader))
 
