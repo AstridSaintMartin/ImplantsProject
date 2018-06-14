@@ -4,10 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import csv
+import shutil
 
 numberPatients=0
+d=0
 
-def getWrightPatients(root, filename):
+def getWrightPatients(root, filename,rootExternalVolume):
     #select patients in the csv file whose patientId appears in the text file
     
     #Transform text file in list to determine number of patients
@@ -23,13 +25,18 @@ def getWrightPatients(root, filename):
     af=df[df['ParticipantID'].isin(PatientId)]
     af=af[af['SeriesDescription'].isin(ScanDescription)]
     ImagesPath=af['Folder'].values
-    print ImagesPath
-    af.to_csv('kneeImplants.csv')
+    af.to_csv('kneeImplants%d.csv'% d)
     
+    
+    #copying data from the external volume to the computer
+    for imageFile in ImagesPath:
+        srcdir=os.path.join(rootExternalVolume,imageFile)
+        dstdir=os.path.join(root,str(imageFile)[-8:])
+        shutil.copytree(srcdir,dstdir)
 
 
 
 
-
-getWrightPatients("/Users/astrid/Documents/ImplantsProject","contents.4G1.csv")
-print numberPatients
+if __name__=='__main__':
+    getWrightPatients("/Users/astrid/Documents/ImplantsProject","contents.4G1.csv")
+    print numberPatients
