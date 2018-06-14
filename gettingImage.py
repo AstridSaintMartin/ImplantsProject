@@ -20,7 +20,7 @@ def getWrightPatients(root, filename,rootExternalVolume):
     numberPatients=len(set(PatientId)) #set remove possible duplicates frim the list
     
     # Modify csv file to only keep the files of the wright patients
-    ScanDescription=['SAG_3D_DESS_RIGHT']
+    ScanDescription=['SAG_3D_DESS_RIGHT','SAG_3D_DESS_LEFT']
     df=pd.read_csv(os.path.join(root,filename))
     af=df[df['ParticipantID'].isin(PatientId)]
     af=af[af['SeriesDescription'].isin(ScanDescription)]
@@ -29,14 +29,14 @@ def getWrightPatients(root, filename,rootExternalVolume):
     
     
     #copying data from the external volume to the computer
-    for imageFile in ImagesPath:
-        srcdir=os.path.join(rootExternalVolume,imageFile)
-        dstdir=os.path.join(root,str(imageFile)[-8:])
-        shutil.copytree(srcdir,dstdir)
+    #for imageFile in ImagesPath:
+        #srcdir=os.path.join(rootExternalVolume,imageFile)
+        #dstdir=os.path.join(root,str(imageFile)[-8:])
+        #shutil.copytree(srcdir,dstdir)
 
 
 
 
 if __name__=='__main__':
-    getWrightPatients("/Users/astrid/Documents/ImplantsProject","contents.4G1.csv")
+    getWrightPatients("/Users/astrid/Documents/ImplantsProject","contents.OE1.csv","/Volumes/TOSHIBA\ EXT/")
     print numberPatients
