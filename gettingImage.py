@@ -7,7 +7,7 @@ import csv
 import shutil
 
 numberPatients=0
-d=0
+d=1
 
 def getWrightPatients(root, filename,rootExternalVolume):
     #select patients in the csv file whose patientId appears in the text file
@@ -20,7 +20,7 @@ def getWrightPatients(root, filename,rootExternalVolume):
     numberPatients=len(set(PatientId)) #set remove possible duplicates frim the list
     
     # Modify csv file to only keep the files of the wright patients
-    ScanDescription=['SAG_3D_DESS_RIGHT','SAG_3D_DESS_LEFT']
+    ScanDescription=['SAG_3D_DESS_RIGHT']
     df=pd.read_csv(os.path.join(root,filename))
     af=df[df['ParticipantID'].isin(PatientId)]
     af=af[af['SeriesDescription'].isin(ScanDescription)]
@@ -29,14 +29,25 @@ def getWrightPatients(root, filename,rootExternalVolume):
     
     
     #copying data from the external volume to the computer
-    #for imageFile in ImagesPath:
-        #srcdir=os.path.join(rootExternalVolume,imageFile)
-        #dstdir=os.path.join(root,str(imageFile)[-8:])
-        #shutil.copytree(srcdir,dstdir)
+    for imageFile in ImagesPath:
+        bf=af[af['Folder']==imageFile]
+        #
+        #following code get the participant id to name the file
+        patientid=str(bf.ParticipantID)[7:16]
+        if patientid[0]==" ":
+            if patientid[1]==" ":
+                patientid=patientid[2:]
+            else:
+                patientid=patientid[1:len(patientid)-1]
+        else:
+            patientid=patientid[0:len(patientid)-2]
+        srcdir=os.path.join(rootExternalVolume,imageFile)
+        dstdir=os.path.join(root+"/Patients2",patientid)
+        shutil.copytree(srcdir,dstdir)
 
 
 
 
 if __name__=='__main__':
-    getWrightPatients("/Users/astrid/Documents/ImplantsProject","contents.OE1.csv","/Volumes/TOSHIBA\ EXT/")
+    getWrightPatients("/Users/astrid/Documents/ImplantsProject","contents.0E1.csv","/Volumes/TOSHIBA EXT/OAI")
     print numberPatients
