@@ -10,7 +10,8 @@ numberPatients=0
 d=1
 
 def getWrightPatients(root, filename,rootExternalVolume):
-    #select patients in the csv file whose patientId appears in the text file
+    #function select patients in the csv file whose patientId appears in the text file
+    #and copy the selected files from the external volume to local repository
     
     #Transform text file in list to determine number of patients
     WrighPatientsList=open(os.path.join(root,"filelist.txt"),"r")
@@ -19,7 +20,7 @@ def getWrightPatients(root, filename,rootExternalVolume):
     global numberPatients
     numberPatients=len(set(PatientId)) #set remove possible duplicates frim the list
     
-    # Modify csv file to only keep the files of the wright patients
+    # Modify csv file to only keep the files corresponding to the ScanDescription of the wright patients 
     ScanDescription=['SAG_3D_DESS_RIGHT']
     df=pd.read_csv(os.path.join(root,filename))
     af=df[df['ParticipantID'].isin(PatientId)]
@@ -41,8 +42,9 @@ def getWrightPatients(root, filename,rootExternalVolume):
                 patientid=patientid[1:len(patientid)-1]
         else:
             patientid=patientid[0:len(patientid)-2]
+        #copying starts below
         srcdir=os.path.join(rootExternalVolume,imageFile)
-        dstdir=os.path.join(root+"/Patients2",patientid)
+        dstdir=os.path.join(root+"/Patients2",patientid)#create a repository for each patient
         shutil.copytree(srcdir,dstdir)
 
 
