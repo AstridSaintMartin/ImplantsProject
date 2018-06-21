@@ -84,6 +84,3 @@ class D_net(nn.Module):
 
 
 
-
-
-
