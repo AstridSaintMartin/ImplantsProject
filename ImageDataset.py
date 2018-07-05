@@ -15,13 +15,18 @@ class KneeDataset(Dataset):
         Args:
         csv_file (string): path to the csv file with PatientsID, stack number and Label
         dict_file (string): path to the pickle file containing the dictionnary with the data
+        transform : the transform
         
         """
+        self.csv_file=csv_file
+        self.dict_file=dict_file
+        self.transform=transform
+        
+        
         self.frame=pd.read_csv(csv_file)
         self.dict=pickle.load(open(dict_file,"r"))
-        self.transform=transform
-    
-    
+        
+        
     def __len__(self):
         return len(self.frame)
     
@@ -30,24 +35,28 @@ class KneeDataset(Dataset):
         label=row_csv["Label"]
         array_of_patient=self.dict[row_csv["PatientsID"]]
         array=array_of_patient[row_csv["StackNumber"]]
-        array.resize(1,64,64)
-        array=torch.from_numpy(array.astype(np.float32))
+        array=array.astype(np.float32)
+        array= np.expand_dims(array, axis=0)
+        array=torch.from_numpy(array)
+        #print "non normalis",array
+        if self.transform is not None:
+            array=self.transform(array)
+            #print "normalise",array
+        print array.size()
         return array, label
 
 
-dset=KneeDataset("DATA/DatasetKnee.csv","DATA/dictImages64x64.pkl")
-dataloader = DataLoader(dset, batch_size=4,shuffle=True)
+normalize = transforms.Normalize(mean=[20], std=[30])
+Trans=transforms.Compose([normalize])
+dset=KneeDataset(csv_file="DATA/DatasetKnee.csv",dict_file="DATA/dictImages64x64.pkl", transform=Trans)
+dataloader = DataLoader(dset, batch_size=1,shuffle=True)
 img, label=next(iter(dataloader))
+print img
 print torch.mean(img)
-im=F.normalize(img)
-im=im.numpy()
+print torch.std(img)
 img=img.numpy()
-print im.shape
-print type(im)
 fig=plt.figure()
-plt.imshow(im[1,0,:,:], cmap="gray")
-fig.savefig("apresnorm")
-f=plt.figure()
-plt.imshow(img[1,0,:,:],cmap="gray")
-fig.savefig("avantNormalisation")
+plt.imshow(img[0,0,:,:],cmap="gray")
+fig.savefig("AVECNormalisation")
+
 
