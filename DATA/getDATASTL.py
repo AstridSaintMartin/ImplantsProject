@@ -48,14 +48,14 @@ def transformto64():
     for key in dict.keys():
         stacksdic=dict[key]
         for KEY in stacksdic.keys():
-            littledic[KEY]=cv2.resize(stacksdic[KEY],(64,64))
+            littledic[int(KEY)]=cv2.resize(stacksdic[KEY],(64,64))
             writer.writerow({"PatientsID": key,"StackNumber":KEY, "Label":classes[key]})
         dictionnary[key]=littledic
     pickle.dump(dictionnary, open("dictImages64x64.pkl","w"))
 
 
 #getPatient()
-#transformto64()
+transformto64()
 df=pd.read_csv(open("DatasetKnee.csv","r"))
 print df
 a= df.iloc[0]
