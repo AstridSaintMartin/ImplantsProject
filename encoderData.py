@@ -59,6 +59,35 @@ class DAE(nn.Module):
         return z, b
 
 
+class Discrimninator(nn.Module):
+    def __init__(self,latent_dim):
+        super(Discriminator, self).__init__()
+        
+        self.d1=nn.Linear(latent_dim,1000)
+        self.d2=nn.Linear(1000,1000)
+        self.d3=nn.Linear(1000,1)
+    
+    
+    def discriminate(self,z):
+        z=F.relu(self.d1(z))
+        z=F.relu(self.d2(z))
+        z=F.sigmoid(self.d3(z))
+        return z
+        
+    def forward(self,z):
+        return discriminate(z)
+        
+        
+    def discrim_loss(self,z, prior):
+        zReal = Variable(self.prior(z.size(0))).type_as(z)
+        pReal = self.discriminate(zReal)
+        zFake = z.detach()  #detach so grad only goes thru dis
+        pFake = self.discriminate(zFake)
+        ones = Variable(torch.Tensor(pReal.size()).fill_(1)).type_as(pReal)
+        zeros = Variable(torch.Tensor(pFake.size()).fill_(0)).type_as(pFake)
+        return 0.5 * torch.mean(bce(pReal, ones) + bce(pFake, zeros))
+        
+        
 dset=KneeDataset("DATA/DatasetKnee.csv","DATA/dictImages64x64.pkl")
 dataloader = DataLoader(dset, batch_size=4,shuffle=True)
 img,label=next(iter(dataloader))
