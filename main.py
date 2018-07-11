@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils as utils
+
 from torch.autograd import Variable
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
@@ -17,7 +18,7 @@ import time
 
 batch_size=100
 tiny=1e-15
-max_epoch=40
+max_epoch=100
 latent_code_size=32
 img_size=784
 img_width=28
@@ -44,7 +45,7 @@ def train (autoencoder, train_loader):
             optimizer.step()
             if step % 100 == 0:
                 print('Epoch: ', epoch, '| train loss: %.4f' % loss.data[0])
-                
+
 def train_DAAE(encoder,decoder,discriminator, train_loader):
     #encoder and decoder optimisers
     Q_optim_encoder=torch.optim.Adam(encoder.parameters(),lr=gen_lr,betas=(0.5, 0.999))
@@ -56,10 +57,23 @@ def train_DAAE(encoder,decoder,discriminator, train_loader):
     #
     BCEloss=[]
     Discriminatorloss=[]
+    Gloss=[]
     for epoch in range(max_epoch):
         if epoch==10:
             global gen_lr
             gen_lr=gen_lr/2
+        elif epoch==30:
+            pickle.dump(encoder,open("encoder%d"%epoch,"wb"))
+            pickle.dump(decoder,open("decoder%d"%epoch,"wb"))
+            print "encoder saved"
+        elif epoch==50:
+            pickle.dump(encoder,open("encoder%d"%epoch,"wb"))
+            pickle.dump(decoder,open("decoder%d"%epoch,"wb"))
+            print "encoder saved"
+        elif epoch==70:
+            pickle.dump(encoder,open("encoder%d"%epoch,"wb"))
+            pickle.dump(decoder,open("decoder%d"%epoch,"wb"))
+            print "encoder saved"
         for step, (image, label) in enumerate(train_loader):
             imageNoisy= torch.mul(image+0.25, 0.5 * noise)
             imageNoisy=Variable(imageNoisy.view(-1,28*28))
@@ -91,22 +105,16 @@ def train_DAAE(encoder,decoder,discriminator, train_loader):
             D_fake=discriminator(Z_fake)
             G_loss= -torch.mean(torch.log(D_fake+ tiny))
             G_loss.backward()
-            Q_optim_generator.step()        
+            Q_optim_generator.step()
             if step % 100 == 0:
                 print('Epoch: ', epoch, '| train loss: %.4f' % recon_loss.data[0],'| discriminator loss: %.4f'% D_loss.data[0])
                 print "parameter learning", gen_lr
         BCEloss.append(recon_loss.data[0])
         Discriminatorloss.append(D_loss.data[0])
-    fig=plt.figure()
-    plt.plot(range(max_epoch),Discriminatorloss,label="discriminator loss")
-    plt.plot(range(max_epoch),BCEloss,label="BCE reconstruction loss")
-    plt.xlabel("Number of epochs")
-    plt.ylabel("losses")
-    plt.gca().legend(('discriminator loss','BCE reconstruction loss'))
-    plt.title("losses for 40 epochs with latent size of 32, DAAE linear and BCE loss")
-    fig.savefig("losses for 40 epochs with latent size of 32, DAAE linear and BCE loss")
-
-
+        Gloss.append(G_loss.data[0])
+    pickle.dump(BCEloss,open("BCEloss","wb"))
+    pickle.dump(Discriminatorloss,open("Discriminatorloss","wb"))
+    pickle.dump(Gloss,open("Gloss","wb"))
 
 
 
@@ -132,35 +140,35 @@ if __name__ == '__main__':
 
     print("begin training")
     train_DAAE(encoder,decoder,discriminator,train_loader)
-    
-    pickle.dump(encoder,open("32_encoder_DAAELINEAR_BCE_40","wb"))
-    pickle.dump(decoder,open("32_decoder_DAAELINEAR_BCE_40","wb"))
-    
-    loaded_encoder=pickle.load(open("32_encoder_DAAELINEAR_BCE_40","r"))
-    loaded_decoder=pickle.load(open("32_decoder_DAAELINEAR_BCE_40","r"))
-    
+
+    pickle.dump(encoder,open("32_encoder_DAAELINEAR_BCE_100","wb"))
+    pickle.dump(decoder,open("32_decoder_DAAELINEAR_BCE_100","wb"))
+
+    loaded_encoder=pickle.load(open("32_encoder_DAAELINEAR_BCE_100","r"))
+    loaded_decoder=pickle.load(open("32_decoder_DAAELINEAR_BCE_100","r"))
+
     loaded_encoder.eval()
     loaded_decoder.eval()
     image=test_loader.dataset[10][0]
     image= Variable(torch.mul(image+0.25, 0.5 * noise))
     image=image.view(-1,28*28)
-    #encoded, decoded=autoencoder.forward(image)
     decoded=loaded_decoder(loaded_encoder(image))
-    
+
     figure=plt.figure()
     image=image[1].resize(1,28,28)
     image=image.data.numpy()
+    np.save(open("original","wb"),image[0])
     plt.imshow(image[0],cmap="gray")
     figure.savefig("32_original_DAAELINEAR_BCE_40")
     plt.close()
-    
+
     figure=plt.figure()
     decoded=decoded[1].resize(1,28,28)
     decoded=decoded.data.numpy()
+    np.save(open("dcoded","wb"),decoded[0])
     plt.imshow(decoded[0],cmap="gray")
     figure.savefig("32_decoded_DAAELINEAR_BCE_40")
     plt.close()
-    
+
     end=time.time()
     print("execution time",end-start)
-
